@@ -3,10 +3,12 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import bodyParser from 'body-parser';
+import httpAuth from 'http-auth';
 import initializeDb from './db';
 import middleware from './middleware';
 import api from './api';
 import config from './config.json';
+import { name } from '../package.json';
 
 let app = express();
 app.server = http.createServer(app);
@@ -23,6 +25,13 @@ app.use(bodyParser.json({
 	limit : config.bodyLimit
 }));
 
+const auth = httpAuth.connect(
+	httpAuth.basic({
+		realm: name, // I used the name from package.json as a realm name to group \ identify the authed users
+		file: __dirname + '/users.htpasswd', // DO NOT COMMIT THIS UNLESS IN DUMMY EXAMPLE
+	})
+)
+
 // connect to db
 initializeDb( db => {
 
@@ -30,7 +39,7 @@ initializeDb( db => {
 	app.use(middleware({ config, db }));
 
 	// api router
-	app.use('/api', api({ config, db }));
+	app.use('/api', api({ config, db, auth }));
 
 	app.server.listen(process.env.PORT || config.port, () => {
 		console.log(`Started on port ${app.server.address().port}`);

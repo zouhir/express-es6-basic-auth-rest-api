@@ -33,7 +33,7 @@ export default ({ config, db }) => resource({
 	},
 
 	/** PUT /:id - Update a given entity */
-	update({ facet, body }, res) {
+	update({ facet, body }, auth, res) {
 		for (let key in body) {
 			if (key!=='id') {
 				facet[key] = body[key];
